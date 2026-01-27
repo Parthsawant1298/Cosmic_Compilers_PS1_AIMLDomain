@@ -1,176 +1,104 @@
 "use client";
-import { ArrowRight, Zap, Target, Activity } from "lucide-react"
-import Link from "next/link"
+import { ArrowRight, Zap, Target, Activity, Shield, Globe } from "lucide-react";
+import Link from "next/link";
 
-// Custom Button component
+// Tactical Button - Optimized for consistent sizing
 function Button({ children, size, variant, className, ...props }) {
-  const baseStyles = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '0.375rem',
-    fontWeight: '500',
-    transition: 'all 0.2s',
-    cursor: 'pointer',
-    textDecoration: 'none',
-    border: 'none',
-    outline: 'none'
-  }
-
-  const sizeStyles = {
-    lg: {
-      padding: '0.75rem 2rem',
-      fontSize: '1.125rem'
-    },
-    md: {
-      padding: '0.5rem 1rem',
-      fontSize: '1rem'
-    }
-  }
-
-  const variantStyles = {
-    default: {
-      backgroundColor: '#22c55e',
-      color: '#FFFFFF'
-    },
-    outline: {
-      backgroundColor: 'transparent',
-      color: '#22c55e',
-      border: '2px solid #22c55e'
-    },
-    white: {
-      backgroundColor: '#FFFFFF',
-      color: '#000000',
-      border: '1px solid #E5E5E5'
-    }
-  }
-
-  const currentSize = sizeStyles[size] || sizeStyles.md
+  const isOutline = variant === 'outline';
 
   return (
     <button
-      style={{
-        ...baseStyles,
-        ...currentSize,
-        ...variantStyles[variant || 'default'],
-        ...props.style
-      }}
+      className={`
+        inline-flex items-center justify-center rounded-xl font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
+        ${size === 'lg' ? 'px-8 py-4 md:px-10 md:py-5 text-xs' : 'px-5 py-2.5 text-[10px]'}
+        ${isOutline 
+          ? 'bg-transparent border-2 border-green-600 text-green-600 hover:bg-green-50' 
+          : 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-200 hover:-translate-y-0.5'}
+        ${className}
+      `}
       {...props}
-      onMouseEnter={(e) => {
-        if (variant === 'default') e.currentTarget.style.backgroundColor = '#16a34a';
-        if (variant === 'outline') e.currentTarget.style.backgroundColor = '#22c55e';
-        if (variant === 'outline') e.currentTarget.style.color = '#FFFFFF';
-        if (props.onMouseEnter) props.onMouseEnter(e);
-      }}
-      onMouseLeave={(e) => {
-        // Reset styles based on variant
-        if (variant === 'default') e.currentTarget.style.backgroundColor = '#22c55e';
-        if (variant === 'outline') e.currentTarget.style.backgroundColor = 'transparent';
-        if (variant === 'outline') e.currentTarget.style.color = '#22c55e';
-        if (props.onMouseLeave) props.onMouseLeave(e);
-      }}
     >
       {children}
     </button>
-  )
+  );
 }
 
 export default function Hero() {
-
   return (
-    <section className="relative py-12 lg:py-20 min-h-screen flex items-center bg-gray-50 overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-green-50 skew-x-12 transform origin-top-right z-0 opacity-50"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-100 rounded-full blur-3xl opacity-30 z-0"></div>
+    <section className="relative min-h-[100dvh] flex items-center justify-center bg-white text-gray-900 overflow-hidden py-12 md:py-20">
+      
+      {/* Light Tactical Background */}
+      <style jsx global>{`
+        .bg-dot-pattern {
+          background-image: radial-gradient(#22c55e 1.5px, transparent 1.5px);
+          background-size: 32px 32px;
+        }
+      `}</style>
+      
+      <div className="absolute inset-0 bg-dot-pattern opacity-[0.06] z-0" />
+      
+      {/* Radial Accents - Adjusted for better containment */}
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-green-500/5 blur-[100px] rounded-full translate-x-1/4 -translate-y-1/4 z-0" />
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-green-600/5 blur-[100px] rounded-full -translate-x-1/4 translate-y-1/4 z-0" />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Content */}
-          <div className="text-center lg:text-left space-y-6">
-            <div className="inline-block px-4 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm mb-2">
-              India's First Predictive Policing Platform
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
-              Transform Crime Fighting with <span className="text-green-600">AI Intelligence</span>
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
+        
+          {/* 2. Main Headline - Tightened leading and spacing */}
+          <div className="space-y-6 mb-10 mt-30">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.9] tracking-tighter uppercase text-gray-900">
+              Precise. <span className="text-green-600">Predictive.</span><br />
+              Public Safety.
             </h1>
-
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed font-medium max-w-2xl mx-auto lg:mx-0">
-              Reduce crime by 25%, optimize resources by 30%, and ensure fair policing with our advanced AI-powered crime mapping and prediction system.
+            <p className="text-gray-500 text-base md:text-lg lg:text-xl leading-snug max-w-2xl mx-auto font-medium tracking-tight">
+              India's premier neural network for law enforcement. 
+              Converting multi-vector data into <span className="text-green-600 font-bold uppercase italic tracking-normal">Actionable Intelligence</span>.
             </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-              <Link href="/demo">
-                <Button size="lg" variant="default" className="w-full sm:w-auto shadow-lg shadow-green-200">
-                  <span className="flex items-center gap-2">
-                    Watch Live Demo
-                    <ArrowRight className="h-5 w-5" />
-                  </span>
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="white" className="w-full sm:w-auto shadow-sm hover:shadow-md">
-                  Request Pilot Program
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8 border-t border-gray-200 mt-8">
-              <div className="text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-green-600 font-bold text-xl sm:text-2xl">
-                  <Target className="h-5 w-5" /> 87%
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500 font-medium text-center lg:text-left">Prediction Accuracy</div>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-green-600 font-bold text-xl sm:text-2xl">
-                  <Zap className="h-5 w-5" /> &lt;2s
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500 font-medium text-center lg:text-left">Response Time</div>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-green-600 font-bold text-xl sm:text-2xl">
-                  <Activity className="h-5 w-5" /> 15K+
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500 font-medium text-center lg:text-left">Stations Ready</div>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-green-600 font-bold text-xl sm:text-2xl">
-                  <ArrowRight className="h-5 w-5 rotate-45" /> 23%
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500 font-medium text-center lg:text-left">Crime Reduction</div>
-              </div>
-            </div>
           </div>
 
-          {/* Image/Visual */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-green-200 rounded-2xl transform rotate-3 scale-105 opacity-20"></div>
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-              <img
-                src="/images/dashboard_mockup.jpg"
-                alt="SafeCity Dashboard"
-                className="w-full h-auto object-cover"
-                onError={(e) => {
-                  e.target.src = "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
-                }}
-              />
-              {/* Floating Element */}
-              <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-green-100 hidden md:block">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-gray-900">Live Prediction Active</h4>
-                    <p className="text-xs text-gray-500">Monitoring 24 sectors in real-time</p>
+          {/* 3. CTA Buttons - Removed extra padding, fixed alignment */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-10">
+            <Link href="/demo" className="w-full sm:w-auto">
+              <Button size="lg" variant="default" className="w-full">
+                Enter Command Suite
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/contact" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full">
+                Jurisdiction Request
+              </Button>
+            </Link>
+          </div>
+
+          {/* 4. Stats Grid - Fixed centering and gap issues */}
+          <div className="w-full border-t border-gray-100">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-4 md:gap-x-8">
+                {[
+                  { label: "Predictive Accuracy", val: "87%", icon: Target },
+                  { label: "System Latency", val: "1.2ms", icon: Zap },
+                  { label: "Active Nodes", val: "15.4K+", icon: Globe },
+                  { label: "Prevention Rate", val: "23%", icon: Activity },
+                ].map((stat, i) => (
+                  <div key={i} className="flex flex-col items-center group transition-transform hover:scale-105">
+                    <div className="flex items-center justify-center p-3 rounded-2xl bg-green-50 group-hover:bg-green-600 group-hover:text-white transition-all duration-300 mb-3">
+                      <stat.icon className="h-5 w-5 md:h-6 md:w-6" />
+                    </div>
+                    <span className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter">{stat.val}</span>
+                    <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-[0.15em] text-gray-400 mt-1">
+                      {stat.label}
+                    </span>
                   </div>
-                  <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-            </div>
+                ))}
+             </div>
+          </div>
+          
+          {/* 5. Minimal Footer - Fixed positioning */}
+          <div className="text-[9px] font-mono text-gray-300 uppercase tracking-widest mt-16">
+            Protocol: SafeCity_Admin // Secure_Node: {new Date().getFullYear()}
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

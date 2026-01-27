@@ -1,195 +1,165 @@
-"use client"
-import Testimonials from "@/components/Testimonial"
+"use client";
+import React from 'react';
+import Testimonials from "@/components/Testimonial";
+import { Shield, Brain, Zap, Fingerprint, Map, Users, BarChart } from "lucide-react";
 
-// Button component
-const Button = ({ children, className, ...props }) => {
+export default function RedesignedAboutUs() {
   return (
-    <button
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  )
-}
-
-export default function AboutUsPage({ backgroundImage = null }) {
-  // Default background image
-  const defaultBackgroundImage = "https://images.pexels.com/photos/159306/construction-site-build-construction-work-159306.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
-  
-  // Use provided image or default
-  const displayBackgroundImage = backgroundImage || defaultBackgroundImage
-  
-  // Background styles
-  const backgroundStyles = {
-    backgroundImage: `url(${displayBackgroundImage})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat'
-  }
-  return (
-    <div className="min-h-screen relative overflow-hidden" style={{backgroundColor: '#FFFFFF'}}>
-      {/* Hero Section */}
-      <section 
-        className="relative h-[300px] sm:h-[400px] md:h-[350px] lg:h-[625px] overflow-hidden pt-16 sm:pt-20 md:pt-16"
-        style={backgroundStyles}
-      >
-
-        <div className="container mx-auto px-4 sm:px-6 relative z-20 h-full">
-          <div className="flex flex-col items-center justify-center h-full">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold text-black text-center">
-              ABOUT
-              <span 
-                className="text-transparent bg-clip-text"
-                style={{
-                  background: 'linear-gradient(to right, #22c55e, #16a34a, #22c55e)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}
-              >
-                US
-              </span>
-            </h1>
+    <div className="bg-white text-slate-900 font-sans">
+      
+      {/* 1. IMPERATIVE HERO SECTION */}
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-slate-950">
+        {/* Animated Background Grid */}
+        <div className="absolute inset-0 opacity-20" 
+             style={{ backgroundImage: `radial-gradient(#22c55e 0.5px, transparent 0.5px)`, backgroundSize: '24px 24px' }}></div>
+        
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-bold tracking-widest uppercase mb-8">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            The Future of Public Safety
           </div>
+          <h1 className="text-5xl md:text-8xl font-black text-white mb-6 tracking-tight">
+            DECODING <span className="text-green-500">CRIME</span><br/>
+            BEFORE IT HAPPENS.
+          </h1>
+          <p className="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            Tribal Connect isn't just a software company. We are a collective of data scientists, 
+            former law enforcement officers, and engineers building the world’s most accurate 
+            predictive policing engine.
+          </p>
         </div>
       </section>
 
-      {/* Main Content Section */}
-      <section className="py-4 sm:py-6 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8 lg:px-16 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center">
-            {/* Hero Image */}
-            <div className="order-2 lg:order-1 flex justify-center">
-              <img
-                src="/images/about.webp"
-                alt="Tribal Connect FRA digitization and mapping platform"
-                className="w-full max-w-sm sm:max-w-md lg:max-w-none rounded-lg shadow-lg border shadow-lg h-[300px] min-h-[300px] sm:h-[400px] sm:min-h-[400px] md:h-[500px] md:min-h-[500px] lg:h-[600px] lg:min-h-[600px] object-cover"
-                style={{
-                  borderColor: 'rgba(34, 197, 94, 0.3)',
-                  boxShadow: '0 4px 6px -1px rgba(34, 197, 94, 0.1)'
-                }}
-                onError={(e) => {
-                  e.target.src = "https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"
-                }}
-              />
-            </div>
-
-            {/* Hero Content */}
-            <div className="order-1 lg:order-2 space-y-4 sm:space-y-6 text-center lg:text-left">
-              <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
-                  Welcome to <span style={{color: '#22c55e'}}>Tribal Connect</span>
-                </h1>
-                <div className="space-y-4 text-gray-700 text-sm sm:text-base md:text-lg leading-relaxed">
-                  <p>
-                    Tribal Connect is a government-backed initiative dedicated to digitizing and implementing the Forest Rights Act (FRA), 2006. We empower forest-dwelling communities by providing AI-powered tools for document digitization, spatial mapping, and decision support systems that connect tribal rights holders with essential government schemes.
-                  </p>
-                  <p>
-                    Our platform addresses the critical challenges of scattered, non-digitized FRA records through comprehensive automation. By leveraging cutting-edge AI technology, satellite imagery, and multi-agency collaboration, we ensure that tribal communities receive their rightful entitlements and access to development programs.
-                  </p>
+      {/* 2. THE PROBLEM & SOLUTION (Split Section) */}
+      <section className="py-24 container mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <h2 className="text-4xl font-bold tracking-tight">
+              Why we exist: <br/>
+              <span className="text-slate-400">Reactive policing is no longer enough.</span>
+            </h2>
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-900">
+                  <Fingerprint size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">The Legacy Problem</h4>
+                  <p className="text-slate-600">Police departments are overwhelmed by fragmented data, leading to delayed response times and resource exhaustion.</p>
                 </div>
               </div>
-
-              {/* Statistics */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 md:gap-8 lg:gap-12 mb-4 sm:mb-6">
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-1 sm:mb-2">10,000+</div>
-                  <div className="text-gray-700 text-xs sm:text-sm">
-                    FRA Claims
-                    <br />
-                    Digitized
-                  </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+                  <Brain size={24} />
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-1 sm:mb-2">500+</div>
-                  <div className="text-gray-700 text-xs sm:text-sm">
-                    Villages
-                    <br />
-                    Mapped
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-1 sm:mb-2">15</div>
-                  <div className="text-gray-700 text-xs sm:text-sm">
-                    States
-                    <br />
-                    Covered
-                  </div>
+                <div>
+                  <h4 className="font-bold text-lg text-green-700">The AI Evolution</h4>
+                  <p className="text-slate-600">We transform raw incident reports into a living "Crime Map" that updates every 2 seconds to predict high-risk clusters.</p>
                 </div>
               </div>
             </div>
           </div>
+          <div className="relative">
+            <div className="absolute -inset-4 bg-green-500/10 rounded-full blur-3xl"></div>
+            
+          </div>
         </div>
       </section>
 
-      {/* Process Section */}
-      <section className="py-6 sm:py-8 md:py-20 lg:py-24 px-4 sm:px-6 md:px-8 lg:px-16 relative z-10" style={{backgroundColor: '#FFFFFF'}}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-stretch">
-            {/* Process Content */}
-            <div className="flex flex-col justify-between space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8 order-1 lg:order-1">
-              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
-                Our <span style={{color: '#22c55e'}}>Technology & Partnerships</span>
-              </h2>
-
-              {/* Content Sections */}
-              <div className="space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8 flex-grow flex flex-col justify-center">
-                {/* AI Technology */}
-                <div className="space-y-2 sm:space-y-3">
-                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">
-                    AI-Powered Digitization
-                  </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed">
-                    Our advanced AI systems process multi-language FRA documents, extract critical information, and create digital databases. This technology ensures accuracy, speed, and accessibility of tribal rights records across India's diverse linguistic landscape.
-                  </p>
-                </div>
-
-                {/* Spatial Mapping */}
-                <div className="space-y-2 sm:space-y-3">
-                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">
-                    FRA Atlas & WebGIS Platform
-                  </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed">
-                    Interactive mapping platform integrating satellite imagery, GPS coordinates, and FRA claim data. This comprehensive spatial database enables real-time monitoring, conflict resolution, and evidence-based decision making for forest governance.
-                  </p>
-                </div>
-
-                {/* Government Collaboration */}
-                <div className="space-y-2 sm:space-y-3">
-                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">
-                    Multi-Agency Collaboration
-                  </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed">
-                    Tribal Connect facilitates seamless collaboration between Ministry of Tribal Affairs, forest departments, state governments, and tribal communities. Our platform serves as a unified interface for FRA implementation across all stakeholders.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Process Image */}
-            <div className="order-2 lg:order-2">
-              <img
-                src="https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"
-                alt="Tribal Connect AI technology and government partnerships"
-                className="w-full h-64 sm:h-72 md:h-80 lg:h-full object-cover rounded-lg shadow-lg border shadow-lg"
-                style={{
-                  borderColor: 'rgba(34, 197, 94, 0.3)',
-                  boxShadow: '0 4px 6px -1px rgba(34, 197, 94, 0.1)'
-                }}
-                onError={(e) => {
-                  console.log('Process image failed, trying backup');
-                  e.target.src = "https://via.placeholder.com/800x600/DAA520/FFFFFF?text=Technical+Services+Process";
-                  e.target.onerror = () => {
-                    e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDgwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjREFBNTIwIi8+Cjx0ZXh0IHg9IjQwMCIgeT0iMzAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCI+VGVjaG5pY2FsIFNlcnZpY2VzPC90ZXh0Pgo8L3N2Zz4K";
-                  };
-                }}
-              />
-            </div>
+      {/* 3. CORE PILLARS (The "How It Works") */}
+      <section className="py-24 bg-slate-50 border-y border-slate-200">
+        <div className="container mx-auto px-6">
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold mb-4">Our Technology Stack</h2>
+            <p className="text-slate-500">Built on three pillars of modern intelligence.</p>
+          </div>
           
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { 
+                icon: <Map className="text-green-500" />, 
+                title: "Spatial Intelligence", 
+                desc: "Real-time mapping of terrain, socioeconomic factors, and historical patterns to identify 'hot-zones'." 
+              },
+              { 
+                icon: <Zap className="text-green-500" />, 
+                title: "Temporal Prediction", 
+                desc: "Forecasting not just where, but WHEN. Our model predicts crime windows within a 2-hour accuracy margin." 
+              },
+              { 
+                icon: <Shield className="text-green-500" />, 
+                title: "Resource Optimization", 
+                desc: "Automatically suggesting patrol routes that maximize visibility while minimizing fuel and time waste." 
+              }
+            ].map((pillar, idx) => (
+              <div key={idx} className="bg-white p-10 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="mb-6">{pillar.icon}</div>
+                <h3 className="text-xl font-bold mb-4">{pillar.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{pillar.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-        <Testimonials />
+
+      {/* 4. THE IMPACT (Statistics Section) */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="bg-slate-950 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden">
+             {/* Decorative element */}
+             <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/20 blur-[120px]"></div>
+             
+             <div className="grid md:grid-cols-2 gap-12 items-center">
+               <div>
+                 <h2 className="text-4xl font-bold mb-6">Quantifiable Safety.</h2>
+                 <p className="text-slate-400 mb-8">Our platform has been pressure-tested across diverse urban landscapes, delivering results that redefine department KPIs.</p>
+                 <button className="bg-green-500 hover:bg-green-600 text-slate-950 font-bold px-8 py-4 rounded-full transition-colors">
+                   Download Impact Report
+                 </button>
+               </div>
+               <div className="grid grid-cols-2 gap-8">
+                 <div className="border-l-2 border-green-500 pl-6">
+                   <div className="text-4xl font-black mb-1">87%</div>
+                   <div className="text-slate-500 text-sm uppercase tracking-widest">Prediction Accuracy</div>
+                 </div>
+                 <div className="border-l-2 border-green-500 pl-6">
+                   <div className="text-4xl font-black mb-1">23%</div>
+                   <div className="text-slate-500 text-sm uppercase tracking-widest">Crime Reduction</div>
+                 </div>
+                 <div className="border-l-2 border-green-500 pl-6">
+                   <div className="text-4xl font-black mb-1">30%</div>
+                   <div className="text-slate-500 text-sm uppercase tracking-widest">Resource Savings</div>
+                 </div>
+                 <div className="border-l-2 border-green-500 pl-6">
+                   <div className="text-4xl font-black mb-1">15K+</div>
+                   <div className="text-slate-500 text-sm uppercase tracking-widest">Stations Ready</div>
+                 </div>
+               </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. TEAM/VALUES SECTION */}
+      <section className="py-24 container mx-auto px-6 text-center">
+        <Users className="mx-auto text-green-500 mb-6" size={48} />
+        <h2 className="text-4xl font-bold mb-12">Driven by Ethics & Evidence</h2>
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 text-left">
+          <div className="space-y-4">
+            <h4 className="font-bold text-xl">Privacy First</h4>
+            <p className="text-slate-600 text-sm">Our AI models are built with strict adherence to data privacy laws. We anonymize personal identifiers to ensure policing is based on patterns, not profiling.</p>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-bold text-xl">Unbiased Intelligence</h4>
+            <p className="text-slate-600 text-sm">We use "Double-Blind" verification processes to ensure our algorithms do not inherit systemic human biases, promoting fair and just enforcement.</p>
+          </div>
+        </div>
+      </section>
+
+      <Testimonials />
     </div>
-  )
+  );
 }
