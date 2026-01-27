@@ -11,8 +11,12 @@ app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000'])  # Allow requests from Next.js frontend
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# OpenRouter API key - you should use environment variables in production
-OPENROUTER_API_KEY = "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"
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
+# OpenRouter API key from environment variables
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 
 # System prompt for OCR
 SYSTEM_PROMPT = """Convert the provided image into Markdown format. Ensure that all content from the page is included, such as headers, footers, subtexts, images (with alt text if possible), tables, and any other elements. Extract text in ALL languages present in the image (including Marathi, Hindi, Odia, English, Tamil, Malayalam, or any other language).
