@@ -71,8 +71,13 @@ const Navbar = () => {
     }
   };
 
-  const navLinks = [
-    { name: 'Dashboard', href: user ? '/main' : '/' },
+  const navLinks = user ? [
+    { name: 'Dashboard', href: '/main' },
+    { name: 'OCR Processing', href: '/main' },
+    { name: 'FRA Atlas', href: '/main/fra-atlas' },
+    { name: 'Claimant', href: '/claimant' },
+  ] : [
+    { name: 'Dashboard', href: '/' },
     { name: 'About', href: '/about' },
     { name: 'Support', href: '/contact' },
     { name: 'Protocols', href: '/faq' },
