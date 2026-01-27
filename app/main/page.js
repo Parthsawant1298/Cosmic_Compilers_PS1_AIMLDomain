@@ -1,11 +1,11 @@
 import MainPage from "@/components/MainPage";
-import Header from "@/components/Header";
+import Navbar from "@/components/Navbar";
 
 export default function Main() {
     return (
         <>
-            <Header />
+            <Navbar />
             <MainPage />
         </>
     );
-}
+}   

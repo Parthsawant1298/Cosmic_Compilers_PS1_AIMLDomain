@@ -1,11 +1,11 @@
 import Contact from '@/components/Contact';
-import Header from '@/components/Header';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default function ContactPage() {
   return (
     <>
-      <Header />
+      <Navbar />
       <Contact backgroundImage="/background.jpg" />
       <Footer />
     </>

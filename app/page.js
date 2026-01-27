@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import ProblemStatement from '@/components/ProblemStatement';
 import Services from '@/components/Services'; // Solution Overview
@@ -18,7 +18,7 @@ import Footer from '@/components/Footer';
 export default function Home() {
   return (
     <main>
-      <Header />
+      <Navbar />
       <Hero />
       <ProblemStatement />
       <Services />

@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X, Shield, User, LogOut, ChevronDown, Phone } from 'lucide-react';
 import Link from 'next/link';
 
-const Header = () => {
+const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -84,10 +84,8 @@ const Header = () => {
   };
 
   // Dynamic navigation based on auth status
-  // User says: "navbar shoupd have hom e, about ,contact and faqq"
-  // If user is logged in, redirect to main page (handled by logo click mostly, but links can remain consistent or change)
   const navLinks = user ? [
-    { name: 'Home', href: '/main' }, // Redirects to main page as requested
+    { name: 'Home', href: '/main' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
     { name: 'FAQ', href: '/faq' },
@@ -296,4 +294,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Navbar;

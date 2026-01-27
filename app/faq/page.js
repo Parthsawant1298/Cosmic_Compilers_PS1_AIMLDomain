@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 export default function FaqPage() {
   return (
     <>
-      <Header />
+      <Navbar />
       <Faq backgroundImage="/background.jpg" />
       <Footer />
     </>

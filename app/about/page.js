@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 export default function AboutPage() {
   return (
     <>
-      <Header />
+      <Navbar />
       <Aboutus backgroundImage="/background.jpg" />
       <Footer />
     </>
