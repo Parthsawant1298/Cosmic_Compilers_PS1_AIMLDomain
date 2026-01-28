@@ -51,78 +51,87 @@ import {
 import Footer from '../../../components/Footer';
 import Navbar from "@/components/Navbar";
 
-export default function FRAAtlasDashboard() {
-  const [fraData, setFraData] = useState([]);
+export default function CrimeAtlasDashboard() {
+  const [firData, setFirData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [stats, setStats] = useState([]);
 
-  // Filter states
+  // Filter states for FIR data
   const [filters, setFilters] = useState({
-    state: "",
     district: "",
-    village: "",
-    claimStatus: "",
-    scheduledTribe: "",
-    formType: "",
+    policeStation: "",
+    crimeType: "",
+    status: "",
     dateFrom: "",
     dateTo: ""
   });
 
-  // Fetch real data from database
+  // Fetch real FIR data from database
   useEffect(() => {
-    fetchFRAData();
+    fetchFIRData();
   }, []);
 
-  const fetchFRAData = async () => {
+  const fetchFIRData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching FRA data...');
-      const response = await fetch('/api/save-claim');
-      const result = await response.json();
-      console.log('API response:', result);
-      console.log('API response success:', result.success);
-      console.log('API response data length:', result.data ? result.data.length : 'no data');
-      
-      if (result.success && result.data && result.data.length > 0) {
-        console.log('Data loaded successfully, length:', result.data.length);
-        console.log('Sample data item:', result.data[0]);
-        console.log('Data structure check:');
-        console.log('- claim_status:', result.data[0]?.claim_status);
-        console.log('- district:', result.data[0]?.district);
-        console.log('- state:', result.data[0]?.state);
-        console.log('- application_date:', result.data[0]?.application_date);
-        setFraData(result.data);
-        setFilteredData(result.data);
+      console.log('Fetching FIR crime data...');
+
+      const [firsRes, statsRes] = await Promise.all([
+        fetch('http://localhost:8000/firs/heatmap'),
+        fetch('http://localhost:8000/stats')
+      ]);
+
+      const firsData = await firsRes.json();
+      const statsData = await statsRes.json();
+
+      console.log('FIR API response:', firsData);
+      console.log('Stats API response:', statsData);
+
+      if (firsData.features && firsData.features.length > 0) {
+        console.log('FIR data loaded successfully, length:', firsData.features.length);
+        console.log('Sample FIR item:', firsData.features[0]);
+
+        // Convert GeoJSON features to flat array for easier processing
+        const firArray = firsData.features.map(feature => ({
+          ...feature.properties,
+          coordinates: feature.geometry.coordinates
+        }));
+
+        setFirData(firArray);
+        setFilteredData(firArray);
+        setStats(statsData);
       } else {
-        console.error('No data received from API or empty dataset');
-        console.log('Setting empty arrays for fraData and filteredData');
-        setFraData([]);
+        console.error('No FIR data received from API or empty dataset');
+        setFirData([]);
         setFilteredData([]);
+        setStats([]);
       }
     } catch (error) {
-      console.error('Error fetching FRA data:', error);
-      setFraData([]);
+      console.error('Error fetching FIR data:', error);
+      setFirData([]);
       setFilteredData([]);
+      setStats([]);
     } finally {
       setLoading(false);
     }
   };
 
   const getUniqueValues = (field) => {
-    return [...new Set(fraData.map(item => item[field]).filter(Boolean))];
+    return [...new Set(firData.map(item => item[field]).filter(Boolean))];
   };
 
   const applyFilters = () => {
-    let filtered = fraData;
+    let filtered = firData;
 
     Object.keys(filters).forEach(key => {
       if (filters[key]) {
         if (key === 'dateFrom' || key === 'dateTo') {
-          // Handle date filtering with improved parsing
+          // Handle date filtering for FIR data
           filtered = filtered.filter(item => {
-            const itemDate = parseApplicationDate(item.application_date) || new Date(item.createdAt);
+            const itemDate = new Date(item.incident_date);
             const filterDate = new Date(filters[key]);
 
             if (!itemDate || isNaN(itemDate.getTime()) || isNaN(filterDate.getTime())) {
@@ -132,11 +141,11 @@ export default function FRAAtlasDashboard() {
             return key === 'dateFrom' ? itemDate >= filterDate : itemDate <= filterDate;
           });
         } else {
-          // Map filter keys to data field names
+          // Map filter keys to FIR data field names
           const fieldMapping = {
-            'claimStatus': 'claim_status',
-            'scheduledTribe': 'scheduled_tribe',
-            'formType': 'form_type'
+            'policeStation': 'police_station',
+            'crimeType': 'crime_type',
+            'status': 'status'
           };
 
           const dataField = fieldMapping[key] || key;
@@ -153,16 +162,14 @@ export default function FRAAtlasDashboard() {
 
   const resetFilters = () => {
     setFilters({
-      state: "",
       district: "",
-      village: "",
-      claimStatus: "",
-      scheduledTribe: "",
-      formType: "",
+      policeStation: "",
+      crimeType: "",
+      status: "",
       dateFrom: "",
       dateTo: ""
     });
-    setFilteredData(fraData);
+    setFilteredData(firData);
   };
 
   const handleFilterChange = (key, value) => {
@@ -174,127 +181,128 @@ export default function FRAAtlasDashboard() {
 
   useEffect(() => {
     applyFilters();
-  }, [filters, fraData]);
+  }, [filters, firData]);
 
   const getStatusColor = (status) => {
     switch(status?.toLowerCase()) {
-      case 'approved': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'accused arrested': return 'text-green-600 bg-green-100';
+      case 'under investigation': return 'text-yellow-600 bg-yellow-100';
+      case 'chargesheet filed': return 'text-blue-600 bg-blue-100';
+      case 'case closed': return 'text-gray-600 bg-gray-100';
+      default: return 'text-purple-600 bg-purple-100';
     }
   };
 
   const getStatusIcon = (status) => {
     switch(status?.toLowerCase()) {
-      case 'approved': return <CheckCircle className="w-4 h-4" />;
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'rejected': return <XCircle className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
+      case 'accused arrested': return <CheckCircle className="w-4 h-4" />;
+      case 'under investigation': return <Clock className="w-4 h-4" />;
+      case 'chargesheet filed': return <FileText className="w-4 h-4" />;
+      case 'case closed': return <XCircle className="w-4 h-4" />;
+      default: return <Activity className="w-4 h-4" />;
     }
   };
 
-  // Chart data processing functions
+  // Chart data processing functions for crime data
   const getStatusDistribution = () => {
-    console.log('=== Status Distribution Debug ===');
+    console.log('=== Crime Status Distribution Debug ===');
     console.log('filteredData length:', filteredData.length);
-    
+
     if (filteredData.length === 0) {
-      console.log('No data available for status distribution');
+      console.log('No crime data available for status distribution');
       return [];
     }
 
-    console.log('Sample items for status check:', filteredData.slice(0, 3).map(item => ({
-      id: item._id,
-      claim_status: item.claim_status,
-      claimStatus: item.claimStatus // Check if it's a different field name
+    console.log('Sample FIR items for status check:', filteredData.slice(0, 3).map(item => ({
+      fir_number: item.fir_number,
+      status: item.status,
+      crime_type: item.crime_type
     })));
 
-    const statusCounts = filteredData.reduce((acc, claim) => {
-      const status = claim.claim_status || 'pending';
+    const statusCounts = filteredData.reduce((acc, fir) => {
+      const status = fir.status || 'Under Investigation';
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});
 
-    console.log('Status counts:', statusCounts);
-    
+    console.log('Crime status counts:', statusCounts);
+
     const result = Object.entries(statusCounts).map(([status, count]) => ({
-      name: status.charAt(0).toUpperCase() + status.slice(1),
+      name: status,
       value: count,
       percentage: ((count / filteredData.length) * 100).toFixed(1)
     }));
-    
-    console.log('Final status distribution:', result);
-    return result;
-  };
 
-  const getStateDistribution = () => {
-    console.log('=== State Distribution Debug ===');
-    console.log('filteredData length:', filteredData.length);
-    
-    if (filteredData.length === 0) {
-      console.log('No data available for state distribution');
-      return [];
-    }
-
-    console.log('Sample items for state check:', filteredData.slice(0, 3).map(item => ({
-      id: item._id,
-      state: item.state
-    })));
-
-    const stateCounts = filteredData.reduce((acc, claim) => {
-      const state = claim.state || 'Unknown';
-      acc[state] = (acc[state] || 0) + 1;
-      return acc;
-    }, {});
-
-    console.log('State counts:', stateCounts);
-
-    const result = Object.entries(stateCounts)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 10)
-      .map(([state, count]) => ({
-        state: state.length > 15 ? state.substring(0, 15) + '...' : state,
-        fullState: state,
-        count
-      }));
-      
-    console.log('Final state distribution:', result);
+    console.log('Final crime status distribution:', result);
     return result;
   };
 
   const getDistrictDistribution = () => {
     console.log('=== District Distribution Debug ===');
     console.log('filteredData length:', filteredData.length);
-    
+
     if (filteredData.length === 0) {
-      console.log('No data available for district distribution');
+      console.log('No crime data available for district distribution');
       return [];
     }
 
-    console.log('Sample items for district check:', filteredData.slice(0, 3).map(item => ({
-      id: item._id,
+    console.log('Sample FIR items for district check:', filteredData.slice(0, 3).map(item => ({
+      fir_number: item.fir_number,
       district: item.district
     })));
 
-    const districtCounts = filteredData.reduce((acc, claim) => {
-      const district = claim.district || 'Unknown';
+    const districtCounts = filteredData.reduce((acc, fir) => {
+      const district = fir.district || 'Unknown';
       acc[district] = (acc[district] || 0) + 1;
       return acc;
     }, {});
-    
+
     console.log('District counts:', districtCounts);
 
     const result = Object.entries(districtCounts)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 15)
+      .slice(0, 10)
       .map(([district, count]) => ({
-        district: district.length > 20 ? district.substring(0, 20) + '...' : district,
+        district: district.length > 15 ? district.substring(0, 15) + '...' : district,
         fullDistrict: district,
         count
       }));
-      
+
     console.log('Final district distribution:', result);
+    return result;
+  };
+
+  const getCrimeTypeDistribution = () => {
+    console.log('=== Crime Type Distribution Debug ===');
+    console.log('filteredData length:', filteredData.length);
+
+    if (filteredData.length === 0) {
+      console.log('No crime data available for crime type distribution');
+      return [];
+    }
+
+    console.log('Sample FIR items for crime type check:', filteredData.slice(0, 3).map(item => ({
+      fir_number: item.fir_number,
+      crime_type: item.crime_type
+    })));
+
+    const crimeTypeCounts = filteredData.reduce((acc, fir) => {
+      const crimeType = fir.crime_type || 'Unknown';
+      acc[crimeType] = (acc[crimeType] || 0) + 1;
+      return acc;
+    }, {});
+
+    console.log('Crime type counts:', crimeTypeCounts);
+
+    const result = Object.entries(crimeTypeCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10)
+      .map(([crimeType, count]) => ({
+        type: crimeType,
+        count
+      }));
+
+    console.log('Final crime type distribution:', result);
     return result;
   };
 
@@ -449,40 +457,6 @@ export default function FRAAtlasDashboard() {
     return result;
   };
 
-  const getTribeDistribution = () => {
-    console.log('=== Tribe Distribution Debug ===');
-    console.log('filteredData length:', filteredData.length);
-    
-    if (filteredData.length === 0) {
-      console.log('No data available for tribe distribution');
-      return [];
-    }
-
-    console.log('Sample items for tribe check:', filteredData.slice(0, 3).map(item => ({
-      id: item._id,
-      scheduled_tribe: item.scheduled_tribe
-    })));
-
-    const tribeCounts = filteredData.reduce((acc, claim) => {
-      const tribe = claim.scheduled_tribe || 'Unknown';
-      acc[tribe] = (acc[tribe] || 0) + 1;
-      return acc;
-    }, {});
-
-    console.log('Tribe counts:', tribeCounts);
-
-    const result = Object.entries(tribeCounts)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 10)
-      .map(([tribe, count]) => ({
-        tribe: tribe.length > 20 ? tribe.substring(0, 20) + '...' : tribe,
-        fullTribe: tribe,
-        count
-      }));
-      
-    console.log('Final tribe distribution:', result);
-    return result;
-  };
 
   // Chart colors
   const STATUS_COLORS = ['#10B981', '#F59E0B', '#EF4444']; // Green, Yellow, Red
@@ -490,25 +464,19 @@ export default function FRAAtlasDashboard() {
 
   const generateMapHTML = () => {
     const mapData = filteredData
-      .filter(claim => claim.latitude && claim.longitude)
-      .map(claim => ({
-        id: claim._id,
-        lat: parseFloat(claim.latitude),
-        lng: parseFloat(claim.longitude),
-        name: claim.claimant_name,
-        village: claim.village,
-        district: claim.district,
-        state: claim.state,
-        status: claim.claim_status,
-        land: claim.total_land_claimed,
-        tribe: claim.scheduled_tribe,
-        formType: claim.form_type,
-        habitation: claim.land_for_habitation,
-        cultivation: claim.land_for_cultivation,
-        familyMembers: claim.family_members?.length || 0,
-        applicationDate: claim.application_date,
-        processedBy: claim.processed_by,
-        processingDate: claim.processing_date
+      .filter(fir => fir.coordinates && fir.coordinates.length === 2)
+      .map(fir => ({
+        id: fir.fir_number,
+        lat: parseFloat(fir.coordinates[1]),
+        lng: parseFloat(fir.coordinates[0]),
+        crime_type: fir.crime_type,
+        district: fir.district,
+        status: fir.status,
+        police_station: fir.police_station,
+        fir_number: fir.fir_number,
+        incident_date: fir.incident_date,
+        incident_time: fir.incident_time,
+        description: fir.description
       }));
 
     return `
@@ -516,7 +484,7 @@ export default function FRAAtlasDashboard() {
       <html>
       <head>
         <meta charset="utf-8" />
-        <title>FRA Claims Atlas - Interactive Map</title>
+        <title>Crime Atlas - Interactive Crime Mapping</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -1977,7 +1945,7 @@ return (
             <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase">
               Intelligence <span className="text-green-600">Dashboard</span>
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">Forest Rights Act (FRA) Monitoring & Spatial Analysis Node</p>
+            <p className="text-slate-500 mt-2 font-medium">Crime Mapping & Predictive Policing Intelligence Dashboard</p>
           </div>
           <div className="flex items-center gap-3">
              <div className="px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm flex items-center gap-2">
@@ -2006,12 +1974,10 @@ return (
 
               <div className="space-y-6">
                 {[
-                  { label: "State", id: "state", type: "select", options: getUniqueValues('state') },
                   { label: "District", id: "district", type: "select", options: getUniqueValues('district') },
-                  { label: "Village", id: "village", type: "input", placeholder: "Search sectors..." },
-                  { label: "Claim Status", id: "claimStatus", type: "select", options: ['approved', 'pending', 'rejected'] },
-                  { label: "Form Type", id: "formType", type: "select", options: getUniqueValues('form_type') },
-                  { label: "Scheduled Tribe", id: "scheduledTribe", type: "input", placeholder: "Tribe ID..." },
+                  { label: "Police Station", id: "policeStation", type: "select", options: getUniqueValues('police_station') },
+                  { label: "Crime Type", id: "crimeType", type: "select", options: getUniqueValues('crime_type') },
+                  { label: "Case Status", id: "status", type: "select", options: ['Under Investigation', 'Accused Arrested', 'Chargesheet Filed', 'Case Closed'] },
                 ].map((field) => (
                   <div key={field.id} className="group">
                     <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1 group-focus-within:text-green-600 transition-colors">
@@ -2094,17 +2060,8 @@ return (
               </div>
               <div className="p-2">
                 <div className="relative rounded-[2rem] overflow-hidden bg-slate-100" style={{ height: '700px' }}>
-                  <MapboxMap 
-                    fraData={filteredData} 
-                    selectedState={filters.state || 'Show_All'} 
-                  />
-                  {/* Tactical Overlay UI on Map */}
-                  <div className="absolute top-6 left-6 pointer-events-none">
-                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/20">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Filter</p>
-                        <p className="text-sm font-black text-slate-900">{filters.state || "All Territories"}</p>
-                     </div>
-                  </div>
+                  <MapboxMap />
+                  
                 </div>
               </div>
             </div>
@@ -2148,12 +2105,12 @@ return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* Distribution Cards */}
                 {[
-                  { title: "Status Matrix", icon: PieChart, color: "green", chart: "status" },
-                  { title: "Territorial Top 10", icon: BarChart, color: "blue", chart: "state" },
-                  { title: "District Breakdown", icon: BarChart, color: "indigo", chart: "district" },
-                  { title: "Temporal Trends", icon: LineChart, color: "cyan", chart: "monthly" },
-                  { title: "Land Scaling", icon: Activity, color: "orange", chart: "land" },
-                  { title: "Document Variance", icon: FileText, color: "pink", chart: "form" },
+                  { title: "Case Status Matrix", icon: PieChart, color: "green", chart: "status" },
+                  { title: "District Crime Hotspots", icon: BarChart, color: "blue", chart: "district" },
+                  { title: "Police Station Analysis", icon: BarChart, color: "indigo", chart: "station" },
+                  { title: "Crime Temporal Trends", icon: LineChart, color: "cyan", chart: "monthly" },
+                  { title: "Crime Severity Index", icon: Activity, color: "orange", chart: "severity" },
+                  { title: "Investigation Progress", icon: FileText, color: "pink", chart: "progress" },
                 ].map((panel, idx) => (
                   <div key={idx} className="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-3 mb-8">
@@ -2179,10 +2136,10 @@ return (
                                </Pie>
                                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
                              </RechartsPieChart>
-                          ) : panel.chart === "state" ? (
-                             <RechartsBarChart data={getStateDistribution()}>
+                          ) : panel.chart === "district" ? (
+                             <RechartsBarChart data={getDistrictDistribution()}>
                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                               <XAxis dataKey="state" fontSize={10} axisLine={false} tickLine={false} />
+                               <XAxis dataKey="district" fontSize={10} axisLine={false} tickLine={false} />
                                <YAxis fontSize={10} axisLine={false} tickLine={false} />
                                <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={20} />
                                <Tooltip cursor={{fill: '#f8fafc'}} />
@@ -2197,22 +2154,22 @@ return (
                   </div>
                 ))}
 
-                {/* Tribe Distribution - Full Width Panel */}
+                {/* Crime Type Distribution - Full Width Panel */}
                 <div className="bg-slate-900 rounded-[2.5rem] p-10 lg:col-span-2 text-white">
                    <div className="flex items-center gap-4 mb-10">
                       <div className="p-3 bg-white/10 rounded-2xl text-teal-400">
                         <Users className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black uppercase tracking-tight">Tribe Demographic Distribution</h3>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Top 10 High-Concentration Groups</p>
+                        <h3 className="text-lg font-black uppercase tracking-tight">Crime Type Distribution</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Top 10 Most Common Crimes</p>
                       </div>
                    </div>
                    <div className="h-[400px]">
                       {filteredData.length > 0 && (
                         <ResponsiveContainer width="100%" height="100%">
-                          <RechartsBarChart data={getTribeDistribution()}>
-                            <XAxis dataKey="tribe" fontSize={10} stroke="#475569" angle={-45} textAnchor="end" height={80} />
+                          <RechartsBarChart data={getCrimeTypeDistribution()}>
+                            <XAxis dataKey="type" fontSize={10} stroke="#475569" angle={-45} textAnchor="end" height={80} />
                             <YAxis stroke="#475569" fontSize={10} />
                             <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', color: '#fff'}} />
                             <Bar dataKey="count" fill="#14B8A6" radius={[6, 6, 0, 0]} />

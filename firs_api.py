@@ -37,6 +37,12 @@ async def startup():
 async def get_all_firs(limit: int = 500):
     """Get ALL your FIRs exactly as stored"""
     firs = list(firs_collection.find().sort("processed_at", -1).limit(limit))
+    
+    # Convert ObjectId to string for JSON serialization
+    for fir in firs:
+        if '_id' in fir:
+            fir['_id'] = str(fir['_id'])
+    
     return {"firs": firs, "count": len(firs)}
 
 @app.get("/firs/heatmap")

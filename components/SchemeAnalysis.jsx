@@ -482,7 +482,7 @@ const SchemeAnalysis = () => {
                 <p className="text-lg font-semibold text-blue-600">{uploadResults.scheme_name}</p>
               </div>
               <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-700">Matched Incidents</h4>
+                <h4 className="font-medium text-gray-700">Matched Cases</h4>
                 <p className="text-lg font-semibold text-green-600">{uploadResults.total_matched_claimants}</p>
               </div>
               <div className="bg-white rounded-lg p-4">
@@ -531,7 +531,7 @@ const SchemeAnalysis = () => {
                 <p className="text-2xl font-bold text-blue-600">{overallAnalytics.totalSchemes}</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-medium text-green-800">Total Eligible Incidents</h4>
+                <h4 className="font-medium text-green-800">Total Eligible Cases</h4>
                 <p className="text-2xl font-bold text-green-600">{overallAnalytics.totalEligibleAcrossSchemes}</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -729,7 +729,7 @@ const SchemeAnalysis = () => {
                           <div>
                             <h4 className="font-semibold text-lg text-gray-900">{claimant.claimant_name}</h4>
                             <p className="text-sm text-gray-600">
-                              {claimant.village}, {claimant.district}, {claimant.state}
+                              {claimant.police_station || claimant.location || 'Unknown Location'}, {claimant.district || claimant.district_name || 'Unknown District'}
                             </p>
                           </div>
                           <div className="text-right">
@@ -741,20 +741,20 @@ const SchemeAnalysis = () => {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3 text-sm">
                           <div>
-                            <span className="text-gray-600">Category:</span>
-                            <p className="font-medium">{claimant.scheduled_tribe || 'N/A'}</p>
+                            <span className="text-gray-600">FIR Number:</span>
+                            <p className="font-medium">{claimant.fir_number || claimant.id || 'N/A'}</p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Detail:</span>
-                            <p className="font-medium">{claimant.other_traditional_forest_dweller || 'No'}</p>
+                            <span className="text-gray-600">Crime Type:</span>
+                            <p className="font-medium">{claimant.crime_type || claimant.crime_category || 'N/A'}</p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Total Area:</span>
-                            <p className="font-medium">{claimant.total_land_claimed || 'N/A'}</p>
+                            <span className="text-gray-600">Date:</span>
+                            <p className="font-medium">{claimant.incident_date || claimant.date || 'N/A'}</p>
                           </div>
                           <div>
                             <span className="text-gray-600">Status:</span>
-                            <p className="font-medium">{claimant.claim_status || 'Pending'}</p>
+                            <p className="font-medium">{claimant.status || claimant.current_status || 'Pending'}</p>
                           </div>
                         </div>
 

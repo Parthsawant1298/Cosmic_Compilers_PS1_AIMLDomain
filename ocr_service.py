@@ -18,6 +18,11 @@ load_dotenv()
 # OpenRouter API key from environment variables
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 
+if not OPENROUTER_API_KEY:
+    raise ValueError("❌ OPENROUTER_API_KEY not found in .env file!")
+
+print(f"✅ OpenRouter API Key loaded: {OPENROUTER_API_KEY[:20]}...")
+
 # System prompt for OCR
 SYSTEM_PROMPT = """Convert the provided image into Markdown format. Ensure that all content from the page is included, such as headers, footers, subtexts, images (with alt text if possible), tables, and any other elements. Extract text in ALL languages present in the image (including Marathi, Hindi, Odia, English, Tamil, Malayalam, or any other language).
 

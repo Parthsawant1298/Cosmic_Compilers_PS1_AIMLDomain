@@ -73,8 +73,11 @@ const Navbar = () => {
 
   const navLinks = user ? [
     { name: 'Dashboard', href: '/main' },
-    { name: 'OCR Processing', href: '/main' },
-    { name: 'FRA Atlas', href: '/main/fra-atlas' },
+    { name: 'OCR Processing', href: '/fir-upload' },
+    { name: 'FIR Atlas', href: '/main/fra-atlas' },
+    { name: 'Chat', href: '/chat' },
+    { name: 'Pattern Analysis', href: '/officer-dss' },
+    { name: 'Resource Allocation', href: '/resource-allocation' },
     { name: 'Claimant', href: '/claimant' },
   ] : [
     { name: 'Dashboard', href: '/' },

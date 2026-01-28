@@ -20,7 +20,7 @@ import Link from "next/link";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 
-export default function FRAOCRInterface() {
+export default function CrimeDashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrResults, setOcrResults] = useState(null);
@@ -143,11 +143,11 @@ export default function FRAOCRInterface() {
         {/* Hero Section */}
         <div className="text-center py-30">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Forest Rights Act Document Processing
+            FIR Document Processing & Crime Analytics
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Upload FRA claim documents in any Indian language. Our AI-powered system will extract, 
-            translate, and structure the data with GPS coordinates automatically.
+            Upload FIR (First Information Report) documents in any Indian language. Our AI-powered system will extract crime data,
+            translate, and structure it with GPS coordinates for real-time crime mapping and analysis.
           </p>
         </div>
 
@@ -173,7 +173,7 @@ export default function FRAOCRInterface() {
                   />
                   <label htmlFor="image-upload" className="cursor-pointer">
                     <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-xl font-medium text-gray-900 mb-2">Upload FRA Document</p>
+                    <p className="text-xl font-medium text-gray-900 mb-2">Upload FIR Document</p>
                     <p className="text-sm text-gray-500 mb-4">
                       Supports PNG, JPG, JPEG files up to 16MB
                     </p>
@@ -316,7 +316,7 @@ export default function FRAOCRInterface() {
                 <div className="flex justify-center">
                   <img
                     src={URL.createObjectURL(selectedImage)}
-                    alt="Uploaded FRA document"
+                    alt="Uploaded FIR document"
                     className="max-w-full max-h-96 object-contain border border-gray-200 rounded"
                   />
                 </div>
