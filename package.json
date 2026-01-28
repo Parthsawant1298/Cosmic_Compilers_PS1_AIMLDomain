@@ -13,6 +13,7 @@
     "cloudinary": "^2.9.0",
     "lucide-react": "^0.563.0",
     "mapbox-gl": "^3.18.1",
+    "mapbox-gl-fontawesome-markers": "^0.0.2",
     "mongoose": "^9.1.5",
     "next": "16.1.5",
     "react": "19.2.3",

@@ -1,433 +1,241 @@
-"use client";
-import React, { useEffect, useRef, useState } from 'react';
+'use client';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Rotate3D } from 'lucide-react';
+import { 
+  Banknote, Link as LinkIcon, Home, Hand, HelpCircle, 
+  Monitor, Ban, Skull, Siren, MapPin, Activity, ShieldAlert
+} from 'lucide-react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
-const MapboxMap = ({ fraData = [], selectedState = 'Show_All' }) => {
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2FyYWtzaGltIiwiYSI6ImNtZXg2bWlxNjB3dmgyaXNkbTJ5dmIzemEifQ.I7tLL6rIWutt8ef9WpN-qg';
+
+export default function MapboxMap() {
   const mapContainer = useRef(null);
-  const mapRef = useRef(null);
-  const [mapLoading, setMapLoading] = useState(true);
+  const map = useRef(null);
   const markersRef = useRef([]);
-  const tooltipRef = useRef(null);
-  const [tooltip, setTooltip] = useState({ visible: false, content: '', x: 0, y: 0 });
+  const [firs, setFirs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('hybrid'); 
+  const [stats, setStats] = useState([]);
 
-  // Initialize map
+  // Refined Logic: Icon + Color + Intensity Level (1-10)
+  const crimeConfig = {
+    'Murder': { icon: <Skull />, color: '#ff0000', intensity: 10 },
+    'Rape': { icon: <Ban />, color: '#ff1493', intensity: 9 },
+    'Robbery': { icon: <Siren />, color: '#ef4444', intensity: 8 },
+    'Assault': { icon: <Hand />, color: '#ff6b6b', intensity: 7 },
+    'Burglary': { icon: <Home />, color: '#f59e0b', intensity: 6 },
+    'Chain Snatching': { icon: <LinkIcon />, color: '#fbbf24', intensity: 5 },
+    'Theft': { icon: <Banknote />, color: '#fbbf24', intensity: 4 },
+    'Cybercrime': { icon: <Monitor />, color: '#3b82f6', intensity: 4 },
+    'Fraud': { icon: <HelpCircle />, color: '#a855f7', intensity: 3 },
+  };
+
   useEffect(() => {
-    // Get Mapbox token from environment variables
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-    if (!mapboxgl.accessToken) {
-      console.error('Mapbox access token not found. Please add NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN to your .env file');
-      return;
-    }
-
-    if (mapContainer.current && !mapRef.current) {
-      mapRef.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite style with street labels
-        center: [77.5, 22.5], // Center on India
-        zoom: 5,
-        pitch: 60, // Tilt the map for 3D effect
-        bearing: -17.6, // Slight rotation for better 3D perspective
-        projection: 'globe', // Globe projection for realistic world view
-        antialias: true, // Enable antialiasing for smoother 3D rendering
-        attributionControl: false // Disable default attribution control
-      });
-
-      // Create tooltip element
-      tooltipRef.current = document.createElement('div');
-      tooltipRef.current.className = 'mapbox-tooltip';
-      tooltipRef.current.style.cssText = `
-        position: absolute;
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        pointer-events: none;
-        z-index: 1000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        max-width: 200px;
-        display: none;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      `;
-      document.body.appendChild(tooltipRef.current);
-
-      // Add navigation controls
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      // Add fullscreen control
-      mapRef.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-
-      // Add compact attribution control
-      mapRef.current.addControl(
-        new mapboxgl.AttributionControl({
-          compact: true
-        })
-      );
-
-      // Add geolocate control
-      mapRef.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        }),
-        'top-right'
-      );
-
-      // Create custom 3D toggle control
-      class Toggle3DControl {
-        onAdd(map) {
-          this._map = map;
-          this._container = document.createElement('div');
-          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-          this._container.innerHTML = `
-            <button type="button" class="mapboxgl-ctrl-icon" title="Toggle 3D View" style="background-image: none; font-size: 14px;">
-              3D
-            </button>
-          `;
-          this._container.addEventListener('click', () => {
-            const currentPitch = map.getPitch();
-            map.easeTo({
-              pitch: currentPitch > 45 ? 0 : 60,
-              duration: 1000
-            });
-          });
-          return this._container;
-        }
-        
-        onRemove() {
-          this._container.parentNode.removeChild(this._container);
-          this._map = undefined;
-        }
-      }
-
-      // Create custom rotation control  
-      class RotateControl {
-        onAdd(map) {
-          this._map = map;
-          this._container = document.createElement('div');
-          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-this._container.innerHTML = `
-  <button
-    type="button"
-    class="mapboxgl-ctrl-icon"
-    title="Rotate Map"
-    style="background-image:none; font-size:14px; display:flex; align-items:center; justify-content:center;"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M21 7v6h-6" />
-      <path d="M3 17v-6h6" />
-      <path d="M21 13a9 9 0 0 0-15-6.7L3 7" />
-      <path d="M3 11a9 9 0 0 0 15 6.7L21 17" />
-    </svg>
-  </button>
-`;
-
-          this._container.addEventListener('click', () => {
-            map.easeTo({
-              bearing: map.getBearing() + 90,
-              duration: 1000
-            });
-          });
-          return this._container;
-        }
-        
-        onRemove() {
-          this._container.parentNode.removeChild(this._container);
-          this._map = undefined;
-        }
-      }
-
-      // Add custom controls
-      mapRef.current.addControl(new Toggle3DControl(), 'top-right');
-      mapRef.current.addControl(new RotateControl(), 'top-right');
-
-      mapRef.current.on('load', () => {
-        setMapLoading(false);
-        console.log('Mapbox map loaded successfully');
-        
-        // Add atmospheric effects (sky layer for better 3D atmosphere)
-        mapRef.current.addLayer({
-          'id': 'sky',
-          'type': 'sky',
-          'paint': {
-            'sky-type': 'atmosphere',
-            'sky-atmosphere-sun': [0.0, 0.0],
-
-          }
-        });
-        
-        // Add fog for depth perception
-        // mapRef.current.setFog({
-        //   'range': [0.8, 8],
-        //   'color': '#dc9f9f',
-        //   'horizon-blend': 0.5,
-        //   'high-color': '#245bde',
-        //   'space-color': '#000000',
-        //   'star-intensity': 0.15
-        // });
-      });
-
-      mapRef.current.on('error', (e) => {
-        console.error('Mapbox error:', e);
-        setMapLoading(false);
-      });
-    }
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-      if (tooltipRef.current) {
-        document.body.removeChild(tooltipRef.current);
-        tooltipRef.current = null;
+    const fetchData = async () => {
+      try {
+        const [firsRes, statsRes] = await Promise.all([
+          fetch('http://localhost:8000/firs/heatmap'),
+          fetch('http://localhost:8000/stats')
+        ]);
+        const firsData = await firsRes.json();
+        setFirs(firsData.features);
+        setStats(await statsRes.json());
+        setLoading(false);
+      } catch (err) {
+        console.error('❌ Sync failed:', err);
+        setLoading(false);
       }
     };
+    fetchData();
   }, []);
 
-  // Update markers when data changes
   useEffect(() => {
-    if (!mapRef.current || !fraData.length) return;
+    if (!mapContainer.current || firs.length === 0) return;
 
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-
-    // Filter data based on selected state
-    const filteredData = selectedState === 'Show_All' 
-      ? fraData 
-      : fraData.filter(item => item.state === selectedState);
-
-    // Add markers for each claim
-    filteredData.forEach((claim, index) => {
-      const lat = parseFloat(claim.latitude);
-      const lng = parseFloat(claim.longitude);
-
-      if (isNaN(lat) || isNaN(lng)) {
-        return; // Skip invalid coordinates
-      }
-
-      // Create marker element
-      const markerElement = document.createElement('div');
-      markerElement.className = 'custom-marker';
-      markerElement.style.cssText = `
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 2px solid white;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        transition: transform 0.2s ease;
-        background-color: ${getStatusColor(claim.status)};
-      `;
-
-      // Add hover effect and tooltip
-      markerElement.addEventListener('mouseenter', (e) => {
-        markerElement.style.transform = 'scale(1.5)';
-        
-        // Show tooltip
-        if (tooltipRef.current) {
-          const tooltipContent = `
-            <div style="font-weight: bold; margin-bottom: 4px;">${claim.claimant_name || 'Unknown Claimant'}</div>
-            <div style="font-size: 11px; opacity: 0.9;">
-              📍 ${claim.village || 'N/A'}, ${claim.district || 'N/A'}<br/>
-              📊 Status: <span style="color: ${getStatusColor(claim.status)}">${(claim.status || 'Unknown').charAt(0).toUpperCase() + (claim.status || 'unknown').slice(1)}</span><br/>
-              🌾 Land: ${claim.total_land_claimed || 'Not specified'}
-            </div>
-          `;
-          
-          tooltipRef.current.innerHTML = tooltipContent;
-          tooltipRef.current.style.display = 'block';
-          
-          const updateTooltipPosition = (event) => {
-            tooltipRef.current.style.left = (event.pageX + 10) + 'px';
-            tooltipRef.current.style.top = (event.pageY - 10) + 'px';
-          };
-          
-          updateTooltipPosition(e);
-          
-          // Update tooltip position on mouse move
-          markerElement.addEventListener('mousemove', updateTooltipPosition);
-        }
-      });
-
-      markerElement.addEventListener('mouseleave', () => {
-        markerElement.style.transform = 'scale(1)';
-        
-        // Hide tooltip
-        if (tooltipRef.current) {
-          tooltipRef.current.style.display = 'none';
-        }
-      });
-
-      // Create popup content
-      const popupContent = createPopupContent(claim);
-
-      // Create popup
-      const popup = new mapboxgl.Popup({
-        offset: 25,
-        closeOnClick: true,
-        maxWidth: '400px'
-      }).setHTML(popupContent);
-
-      // Create marker
-      const marker = new mapboxgl.Marker(markerElement)
-        .setLngLat([lng, lat])
-        .setPopup(popup)
-        .addTo(mapRef.current);
-
-      markersRef.current.push(marker);
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [72.8777, 19.0760],
+      zoom: 11.5,
+      pitch: 50,
+      bearing: -10,
+      antialias: true
     });
 
-    // Fit bounds to show all markers if we have data
-    if (filteredData.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      filteredData.forEach(claim => {
-        const lat = parseFloat(claim.latitude);
-        const lng = parseFloat(claim.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          bounds.extend([lng, lat]);
+    map.current.on('load', renderCurrentView);
+    return () => map.current?.remove();
+  }, [firs]);
+
+  const renderCurrentView = () => {
+    if (!map.current) return;
+
+    // Clean Layers
+    if (map.current.getLayer('firs-heatmap')) map.current.removeLayer('firs-heatmap');
+    if (map.current.getSource('firs')) map.current.removeSource('firs');
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    map.current.addSource('firs', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: firs }
+    });
+
+    // 1. Refined Heatmap (Higher Detail)
+    if (viewMode === 'heatmap' || viewMode === 'hybrid') {
+      map.current.addLayer({
+        id: 'firs-heatmap',
+        type: 'heatmap',
+        source: 'firs',
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'intensity'], 1, 0.5, 10, 2],
+          'heatmap-intensity': 1.5,
+          'heatmap-color': [
+            'interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, '#1e3a8a', 0.4, '#9333ea', 0.6, '#ef4444', 0.8, '#facc15', 1, '#ffffff'
+          ],
+          'heatmap-radius': 35,
+          'heatmap-opacity': viewMode === 'heatmap' ? 0.85 : 0.4
         }
       });
-
-      if (!bounds.isEmpty()) {
-        mapRef.current.fitBounds(bounds, {
-          padding: 50,
-          maxZoom: 12
-        });
-      }
     }
-  }, [fraData, selectedState]);
 
-  // Helper function to get status color
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'approved': return '#10B981'; // Green
-      case 'pending': return '#F59E0B'; // Orange
-      case 'rejected': return '#EF4444'; // Red
-      default: return '#6B7280'; // Gray
+    // 2. Refined Markers (Telling the "Intensity" and "Story")
+    if (viewMode === 'markers' || viewMode === 'hybrid') {
+      firs.forEach(feature => {
+        const props = feature.properties;
+        const cfg = crimeConfig[props.crime_type] || { icon: <MapPin />, color: '#fff', intensity: 2 };
+        
+        // Logical Scaling: Larger icons for higher intensity
+        const iconSize = 18 + (cfg.intensity * 1.5);
+        const glowStrength = cfg.intensity * 2;
+
+        const el = document.createElement('div');
+        el.className = 'marker-container flex flex-col items-center group cursor-pointer';
+        
+        // The Icon with Intensity Glow
+        const iconWrapper = document.createElement('div');
+        iconWrapper.style.color = cfg.color;
+        iconWrapper.style.filter = `drop-shadow(0 0 ${glowStrength}px ${cfg.color})`;
+        iconWrapper.className = 'transition-all duration-300 transform group-hover:scale-125 group-hover:z-50';
+        iconWrapper.innerHTML = renderToStaticMarkup(cfg.icon);
+        iconWrapper.style.width = `${iconSize}px`;
+        iconWrapper.style.height = `${iconSize}px`;
+
+        // Intensity Label (Shows on hover)
+        const label = document.createElement('span');
+        label.className = 'absolute -top-8 px-2 py-1 bg-black/90 text-[10px] text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white/20';
+        label.innerText = `${props.crime_type} (Lv. ${cfg.intensity})`;
+
+        el.appendChild(label);
+        el.appendChild(iconWrapper);
+
+        const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, maxWidth: '300px' }).setHTML(`
+          <div class="p-0 overflow-hidden rounded-xl bg-[#0f0f12] text-white border border-white/10 shadow-2xl">
+            <div class="h-1 w-full" style="background: ${cfg.color}"></div>
+            <div class="p-4">
+              <div class="flex justify-between items-start mb-3">
+                <h3 class="text-sm font-black uppercase tracking-tighter" style="color: ${cfg.color}">${props.crime_type}</h3>
+                <span class="text-[10px] text-gray-500 font-mono">ID: ${props.fir_number}</span>
+              </div>
+            
+              <div class="grid grid-cols-2 gap-2 text-[10px] bg-white/5 p-2 rounded-lg">
+                <div><span class="text-gray-500 block">STATION</span>${props.police_station}</div>
+                <div><span class="text-gray-500 block">STATUS</span><span class="text-green-400 font-bold">${props.status}</span></div>
+                <div><span class="text-gray-500 block">DATE</span>${props.incident_date}</div>
+                <div><span class="text-gray-500 block">TIME</span>${props.incident_time}</div>
+              </div>
+            </div>
+          </div>
+        `);
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat(feature.geometry.coordinates)
+          .setPopup(popup)
+          .addTo(map.current);
+        
+        markersRef.current.push(marker);
+      });
     }
   };
 
-  // Helper function to create popup content
-  const createPopupContent = (claim) => {
-    return `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 8px;">
-        <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${getStatusColor(claim.status)};"></span>
-          ${claim.claimant_name || 'Unknown Claimant'}
-        </div>
-        <div style="color: #34495e; font-size: 12px; line-height: 1.4;">
-          <p style="margin: 4px 0;"><strong>📍 Location:</strong> ${claim.village || 'N/A'}, ${claim.district || 'N/A'}</p>
-          <p style="margin: 4px 0;"><strong>🏛️ State:</strong> ${claim.state || 'N/A'}</p>
-          <p style="margin: 4px 0;"><strong>📊 Status:</strong> 
-            <span style="color: ${getStatusColor(claim.status)}; font-weight: bold;">
-              ${(claim.status || 'Unknown').charAt(0).toUpperCase() + (claim.status || 'unknown').slice(1)}
-            </span>
-          </p>
-          <p style="margin: 4px 0;"><strong>🌾 Land Claimed:</strong> ${claim.total_land_claimed || 'Not specified'}</p>
-          <p style="margin: 4px 0;"><strong>👥 Family Members:</strong> ${claim.family_members?.length || 0}</p>
-          <p style="margin: 4px 0;"><strong>📅 Application Date:</strong> ${claim.application_date || 'N/A'}</p>
-          ${claim.coordinates ? `<p style="margin: 4px 0;"><strong>🗺️ Coordinates:</strong> ${claim.latitude}, ${claim.longitude}</p>` : ''}
-        </div>
+  useEffect(() => {
+    if (map.current) renderCurrentView();
+  }, [viewMode]);
+
+  if (loading) return (
+    <div className="w-screen h-screen bg-[#050507] flex items-center justify-center">
+      <div className="flex flex-col items-center">
+        <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-white font-black tracking-[0.3em] text-xs animate-pulse">ESTABLISHING SECURE CONNECTION...</p>
       </div>
-    `;
-  };
-
-  return (
-    <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
-      {mapLoading && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 1000,
-          background: 'rgba(255,255,255,0.9)',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            border: '2px solid #10B981',
-            borderTop: '2px solid transparent',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <span>Loading map...</span>
-        </div>
-      )}
-      
-      <div 
-        ref={mapContainer} 
-        style={{ 
-          height: '100%', 
-          width: '100%',
-          borderRadius: '8px'
-        }} 
-      />
-
-      {/* Map Legend */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '20px',
-        background: 'rgba(255,255,255,0.95)',
-        padding: '15px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        zIndex: 1000,
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        fontSize: '12px'
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#2c3e50' }}>
-          FRA Claims Status
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#10B981' }}></div>
-            <span>Approved</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#F59E0B' }}></div>
-            <span>Pending</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#EF4444' }}></div>
-            <span>Rejected</span>
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
-};
 
-export default MapboxMap;
+  return (
+    <div className="w-screen h-screen bg-black relative overflow-hidden font-sans antialiased">
+      {/* HEADER LOGO */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-black/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10">
+        <ShieldAlert className="text-red-600 animate-pulse" />
+        <h1 className="text-white text-sm font-black tracking-widest uppercase">Mumbai Real-Time Crime Network</h1>
+      </div>
+
+      {/* VIEW CONTROLS */}
+      <div className="absolute top-6 left-6 z-30 flex flex-col gap-4">
+        <div className="flex p-1 bg-black/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl">
+          {['heatmap', 'markers', 'hybrid'].map((m) => (
+            <button key={m} onClick={() => setViewMode(m)}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-wider ${
+                viewMode === m ? 'bg-red-600 text-white shadow-lg shadow-red-600/40' : 'text-gray-500 hover:text-white'
+              }`}>
+              {m}
+            </button>
+          ))}
+        </div>
+
+        {/* INTENSITY LEGEND */}
+        <div className="p-5 bg-black/80 backdrop-blur-xl rounded-3xl border border-white/10 w-64 shadow-2xl">
+          <p className="text-[10px] font-bold text-gray-500 mb-4 uppercase tracking-widest">Intensity Mapping</p>
+          <div className="space-y-3">
+             {Object.entries(crimeConfig).slice(0, 5).map(([name, cfg]) => (
+               <div key={name} className="flex items-center justify-between group">
+                 <div className="flex items-center gap-3">
+                   <span style={{ color: cfg.color }} className="group-hover:scale-125 transition-transform">{cfg.icon}</span>
+                   <span className="text-xs text-gray-300 font-medium">{name}</span>
+                 </div>
+                 <div className="flex gap-0.5">
+                   {[...Array(5)].map((_, i) => (
+                     <div key={i} className={`h-1 w-2 rounded-full ${i < cfg.intensity/2 ? '' : 'bg-gray-800'}`} 
+                          style={{ backgroundColor: i < cfg.intensity/2 ? cfg.color : '' }}></div>
+                   ))}
+                 </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ANALYTICS PANEL */}
+      <div className="absolute top-6 right-6 z-30 w-80 bg-black/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-white font-black text-lg tracking-tighter">METRICS</h2>
+          <Activity className="text-green-500" size={16} />
+        </div>
+        <div className="space-y-4">
+          {stats.map(stat => (
+            <div key={stat._id} className="relative overflow-hidden group p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
+              <div className="flex justify-between items-center relative z-10">
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">{stat._id}</span>
+                <span className="text-2xl font-black text-white">{stat.count}</span>
+              </div>
+              <div className="absolute bottom-0 left-0 h-1 bg-red-600 transition-all duration-500" style={{ width: `${(stat.count / firs.length) * 100}%` }}></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
+    </div>
+  );
+}
